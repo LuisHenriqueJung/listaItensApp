@@ -11,6 +11,7 @@ import 'package:listagem/components/searchFiel_widget.dart';
 import 'package:listagem/models/ItemModel.dart';
 import 'package:listagem/models/user_model.dart';
 import 'package:listagem/modules/crud/controllers/itens_controller.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class ListagemPage extends StatefulWidget {
   const ListagemPage({super.key});
@@ -20,12 +21,14 @@ class ListagemPage extends StatefulWidget {
 }
 
 class _ListagemPageState extends State<ListagemPage> {
+  var _debugLabelString;
   final itens = Modular.get<ItemController>();
   bool isLoadign = false;
   @override
   void initState() {
     super.initState();
     refreshItens();
+    getOneSignal();
   }
 
   Future refreshItens() async {
@@ -38,27 +41,35 @@ class _ListagemPageState extends State<ListagemPage> {
     });
   }
 
+  getOneSignal() async {
+    OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
+    await OneSignal.shared.setAppId("83713a64-52a7-4401-bc6f-ebe4284ae4ca");
+
+    await OneSignal.shared
+        .promptUserForPushNotificationPermission()
+        .then((accepted) {
+      print("Accepted permission: $accepted");
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: MyDrawerMenu(),
       appBar: AppBar(
         elevation: 0,
-        title: Text('Itens cadastrados'),
+        title: Text('Meus itens'),
         actions: [
           IconButton(
               onPressed: () async {
                 List<Item> toRemove = [];
+                setState(() {
+                  isLoadign = true;
+                });
                 for (var item in itens.listaItens) {
                   if (item.selected!) {
-                    setState(() {
-                      isLoadign = true;
-                    });
                     await itens.deleteItem(item.id!);
                     toRemove.add(item);
-                    setState(() {
-                      isLoadign = false;
-                    });
                     if (itens.listaItens.isEmpty) {
                       setState(() {});
                     }
@@ -80,6 +91,10 @@ class _ListagemPageState extends State<ListagemPage> {
                 itens.listaItensSuggestion.removeWhere(
                   (e) => toRemoveSugestion.contains(e),
                 );
+
+                setState(() {
+                  isLoadign = false;
+                });
               },
               icon: Icon(Icons.delete)),
         ],

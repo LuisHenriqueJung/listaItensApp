@@ -36,6 +36,7 @@ dependencies:
   mobx_codegen: ^2.1.1
   flutter_mobx: ^2.0.6+5
   fluttertoast: ^8.2.1
+  onesignal_flutter: ^3.5.1
 
 
 

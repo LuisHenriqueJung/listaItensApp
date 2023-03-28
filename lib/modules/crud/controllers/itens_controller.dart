@@ -2,6 +2,7 @@ import 'package:listagem/database/db_conection.dart';
 import 'package:listagem/models/ItemModel.dart';
 import 'package:mobx/mobx.dart';
 import 'package:flutter/material.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 part 'itens_controller.g.dart';
 
 class ItemController = ItemControllerBase with _$ItemController;
@@ -38,7 +39,22 @@ abstract class ItemControllerBase with Store {
         descricao: descricaoController.text,
         quantidade: quantidade,
         selected: false);
+    if (novoitem.quantidade % 10 == 0) {
+      var playerId = await getPlayerId();
+      var notification = OSCreateNotification(
+        playerIds: ['0bb5bf43-3793-41a8-ba46-aa1918c2e44f'],
+        content: "Foi adicionado um novo item com quantidade multipla de 10!",
+        heading: "Multiplo de 10 adicionado",
+      );
+      var response = await OneSignal.shared.postNotification(notification);
+      print('$response AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    }
     listaItens.add(await ItensDatabase.instance.insertItem(novoitem));
+  }
+
+  Future<String?> getPlayerId() async {
+    final status = await OneSignal.shared.getDeviceState();
+    return status?.userId ?? 'not found';
   }
 
   @action
